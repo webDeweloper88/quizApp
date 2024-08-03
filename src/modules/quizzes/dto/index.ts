@@ -11,10 +11,6 @@ export class CreateQuizDTO {
   @IsOptional()
   @IsString()
   readonly description?: string;
-
-  @ApiProperty()
-  @IsInt()
-  readonly createdBy: number;
 }
 
 export class UpdateQuizDTO {

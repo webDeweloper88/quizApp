@@ -5,6 +5,7 @@ import { CreateResultDTO } from './dto';
 import { Quiz } from '../quizzes/quiz.model';
 import { Question } from '../question/question.model';
 import { Option } from '../option/option.model';
+import { User } from '../user/models/user.model'; // Импорт модели User
 
 @Injectable()
 export class ResultService {
@@ -13,6 +14,7 @@ export class ResultService {
     @InjectModel(Quiz) private readonly quizModel: typeof Quiz,
     @InjectModel(Question) private readonly questionModel: typeof Question,
     @InjectModel(Option) private readonly optionModel: typeof Option,
+    @InjectModel(User) private readonly userModel: typeof User, // Инъекция модели User
   ) {}
 
   async createResult(userId: number, dto: CreateResultDTO): Promise<Result> {
@@ -28,9 +30,13 @@ export class ResultService {
     }
 
     let score = 0;
+    const answeredQuestions = new Set();
 
     // Рассчитайте баллы
     for (const answer of answers) {
+      if (answeredQuestions.has(answer.questionId)) {
+        continue; // Игнорируйте повторяющиеся ответы на тот же вопрос
+      }
       const question = quiz.questions.find((q) => q.id === answer.questionId);
       if (!question) {
         throw new NotFoundException(
@@ -40,14 +46,10 @@ export class ResultService {
       const selectedOption = question.options.find(
         (o) => o.id === answer.optionId,
       );
-      if (!selectedOption) {
-        throw new NotFoundException(
-          `Option with ID ${answer.optionId} not found`,
-        );
-      }
-      if (selectedOption.isCorrect) {
+      if (selectedOption && selectedOption.isCorrect) {
         score += 1;
       }
+      answeredQuestions.add(answer.questionId);
     }
 
     // Максимальный балл за викторину
@@ -69,7 +71,9 @@ export class ResultService {
   }
 
   async getResultById(id: number): Promise<Result> {
-    const result = await this.resultModel.findByPk(id);
+    const result = await this.resultModel.findByPk(id, {
+      include: [Quiz, User],
+    });
     if (!result) {
       throw new NotFoundException(`Result with ID ${id} not found`);
     }

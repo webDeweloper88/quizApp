@@ -1,92 +1,57 @@
-import { QuizzesService } from './quizzes.service';
-// src/quiz/quiz.controller.ts
 import {
   Controller,
   Get,
   Post,
-  Put,
-  Delete,
   Param,
   Body,
   UseGuards,
+  Req,
 } from '@nestjs/common';
-
-import { CreateQuizDTO, UpdateQuizDTO } from './dto';
+import { QuizzesService } from './quizzes.service';
+import { CreateQuizDTO } from './dto';
 import { JwtAuthGuard } from 'src/guards/jwt-guard';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { Roles } from 'src/guards/roles.decorator';
+import { UserRole } from '../user/models/user.model';
+import { Quiz } from './quiz.model';
 import {
   ApiTags,
   ApiOperation,
-  ApiResponse,
-  ApiParam,
   ApiBearerAuth,
+  ApiResponse,
 } from '@nestjs/swagger';
-import { Quiz } from './quiz.model';
 
 @ApiTags('quizzes')
-@ApiBearerAuth()
 @Controller('quizzes')
 export class QuizController {
-  constructor(private readonly quizService: QuizzesService) {}
+  constructor(private readonly quizzesService: QuizzesService) {}
 
   @ApiOperation({ summary: 'Create a new quiz' })
-  @ApiResponse({
-    status: 201,
-    description: 'Quiz created successfully',
-    type: Quiz,
-  })
-  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Post()
-  async create(@Body() createQuizDto: CreateQuizDTO) {
-    return this.quizService.createQuiz(createQuizDto);
-  }
-
-  @ApiOperation({ summary: 'Get all quizzes' })
-  @ApiResponse({
-    status: 200,
-    description: 'Quizzes retrieved successfully',
-    type: [Quiz],
-  })
-  @UseGuards(JwtAuthGuard)
-  @Get()
-  async findAll() {
-    return this.quizService.findAllQuizzes();
+  async createQuiz(
+    @Body() createQuizDto: CreateQuizDTO,
+    @Req() req,
+  ): Promise<Quiz> {
+    const userId = req.user.userId; // Извлечение userId из токена
+    return this.quizzesService.createQuiz(createQuizDto, userId);
   }
 
   @ApiOperation({ summary: 'Get a quiz by ID' })
-  @ApiParam({ name: 'id', required: true, description: 'Quiz ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Quiz retrieved successfully',
-    type: Quiz,
-  })
-  @ApiResponse({ status: 404, description: 'Quiz not found' })
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get(':id')
-  async findOne(@Param('id') id: number) {
-    return this.quizService.findQuizById(id);
+  async findQuizById(@Param('id') id: number) {
+    return this.quizzesService.findQuizById(id);
   }
 
-  @ApiOperation({ summary: 'Update a quiz by ID' })
-  @ApiParam({ name: 'id', required: true, description: 'Quiz ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Quiz updated successfully',
-    type: Quiz,
-  })
-  @ApiResponse({ status: 404, description: 'Quiz not found' })
+  @ApiOperation({ summary: 'Get all quizzes' })
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Put(':id')
-  async update(@Param('id') id: number, @Body() updateQuizDto: UpdateQuizDTO) {
-    return this.quizService.updateQuiz(id, updateQuizDto);
-  }
-
-  @ApiOperation({ summary: 'Delete a quiz by ID' })
-  @ApiParam({ name: 'id', required: true, description: 'Quiz ID' })
-  @ApiResponse({ status: 204, description: 'Quiz deleted successfully' })
-  @ApiResponse({ status: 404, description: 'Quiz not found' })
-  @UseGuards(JwtAuthGuard)
-  @Delete(':id')
-  async delete(@Param('id') id: number) {
-    return this.quizService.deleteQuiz(id);
+  @Get()
+  async findAllQuizzes() {
+    return this.quizzesService.findAllQuizzes();
   }
 }

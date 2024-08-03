@@ -1,13 +1,13 @@
-// src/modules/result/result.model.ts
 import {
   Table,
   Column,
   Model,
   DataType,
   ForeignKey,
+  BelongsTo,
 } from 'sequelize-typescript';
 import { User } from '../user/models/user.model';
-import { Quiz } from './../quizzes/quiz.model';
+import { Quiz } from '../quizzes/quiz.model';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Table
@@ -63,4 +63,10 @@ export class Result extends Model<Result> {
     defaultValue: DataType.NOW,
   })
   updatedAt: Date;
+
+  @BelongsTo(() => User)
+  user: User;
+
+  @BelongsTo(() => Quiz)
+  quiz: Quiz;
 }
