@@ -17,7 +17,22 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async registerUsers(dto: CreateUserDTO): Promise<CreateUserDTO> {
+  // async registerUsers(dto: CreateUserDTO): Promise<CreateUserDTO> {
+  //   const existUser = await this.userService
+  //     .findUserByEmail(dto.email)
+  //     .catch(() => null);
+  //   if (existUser) throw new BadRequestException(AppError.USER_EXIST);
+
+  //   const existUsername = await this.userService
+  //     .findUserByUsername(dto.username)
+  //     .catch(() => null);
+  //   if (existUsername) throw new BadRequestException(AppError.USERNAME_EXIST);
+
+  //   return this.userService.createUser(dto);
+  // }
+  async registerUsers(
+    dto: CreateUserDTO,
+  ): Promise<Omit<CreateUserDTO, 'password'>> {
     const existUser = await this.userService
       .findUserByEmail(dto.email)
       .catch(() => null);
@@ -28,7 +43,9 @@ export class AuthService {
       .catch(() => null);
     if (existUsername) throw new BadRequestException(AppError.USERNAME_EXIST);
 
-    return this.userService.createUser(dto);
+    const user = await this.userService.createUser(dto);
+    const { password, ...userWithoutPassword } = user.get();
+    return userWithoutPassword;
   }
 
   async validateUser(email: string, password: string): Promise<any> {

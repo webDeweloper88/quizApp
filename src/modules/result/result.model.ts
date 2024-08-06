@@ -8,11 +8,9 @@ import {
 } from 'sequelize-typescript';
 import { User } from '../user/models/user.model';
 import { Quiz } from '../quizzes/quiz.model';
-import { ApiProperty } from '@nestjs/swagger';
 
 @Table
 export class Result extends Model<Result> {
-  @ApiProperty()
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
@@ -20,7 +18,6 @@ export class Result extends Model<Result> {
   })
   id: number;
 
-  @ApiProperty()
   @ForeignKey(() => User)
   @Column({
     type: DataType.INTEGER,
@@ -28,7 +25,9 @@ export class Result extends Model<Result> {
   })
   userId: number;
 
-  @ApiProperty()
+  @BelongsTo(() => User)
+  user: User;
+
   @ForeignKey(() => Quiz)
   @Column({
     type: DataType.INTEGER,
@@ -36,37 +35,36 @@ export class Result extends Model<Result> {
   })
   quizId: number;
 
-  @ApiProperty()
+  @BelongsTo(() => Quiz)
+  quiz: Quiz;
+
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.FLOAT,
     allowNull: false,
   })
   score: number;
 
-  @ApiProperty()
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
   })
   passed: boolean;
 
-  @ApiProperty()
+  @Column({
+    type: DataType.JSONB,
+    allowNull: false,
+  })
+  answers: any[];
+
   @Column({
     type: DataType.DATE,
     defaultValue: DataType.NOW,
   })
   createdAt: Date;
 
-  @ApiProperty()
   @Column({
     type: DataType.DATE,
     defaultValue: DataType.NOW,
   })
   updatedAt: Date;
-
-  @BelongsTo(() => User)
-  user: User;
-
-  @BelongsTo(() => Quiz)
-  quiz: Quiz;
 }

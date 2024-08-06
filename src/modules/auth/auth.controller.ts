@@ -1,5 +1,14 @@
+import { ValidationPipe } from '@nestjs/common';
 // src/auth/auth.controller.ts
-import { Controller, Post, Body, UseGuards, Put, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Put,
+  Param,
+  UsePipes,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDTO, LoginResponseDTO, LoginUserDTO } from '../user/dto';
 import {
@@ -28,9 +37,19 @@ export class AuthController {
     description: 'User registered successfully',
     type: User,
   })
-  @ApiResponse({ status: 400, description: 'Bad Request' })
+  // @ApiResponse({ status: 400, description: 'Bad Request' })
+  // @Post('register')
+  // register(@Body() dto: CreateUserDTO): Promise<CreateUserDTO> {
+  //   return this.authService.registerUsers(dto);
+  // }
+  @ApiOperation({ summary: 'Register a new user' })
+  @ApiResponse({ status: 201, description: 'User successfully registered.' })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
   @Post('register')
-  register(@Body() dto: CreateUserDTO): Promise<CreateUserDTO> {
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async register(
+    @Body() dto: CreateUserDTO,
+  ): Promise<Omit<CreateUserDTO, 'password'>> {
     return this.authService.registerUsers(dto);
   }
 
@@ -52,6 +71,7 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   @ApiResponse({ status: 200, type: LoginResponseDTO })
   @Post('login')
+  @UsePipes(new ValidationPipe({ transform: true }))
   async login(@Body() dto: LoginUserDTO) {
     return this.authService.login(dto);
   }

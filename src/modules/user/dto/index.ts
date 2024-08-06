@@ -6,22 +6,40 @@ import {
   MinLength,
   IsEnum,
   IsOptional,
+  MaxLength,
+  Matches,
 } from 'class-validator';
 import { User, UserRole } from '../models/user.model';
 
 export class CreateUserDTO {
-  @ApiProperty()
+  // @ApiProperty()
+  // @IsString()
+  // readonly username: string;
+
+  // @ApiProperty()
+  // @IsEmail()
+  // readonly email: string;
+
+  // @ApiProperty()
+  // @IsString()
+  // @MinLength(8)
+  // readonly password: string;
+
   @IsString()
-  readonly username: string;
+  @MinLength(4)
+  @MaxLength(20)
+  username: string;
 
-  @ApiProperty()
   @IsEmail()
-  readonly email: string;
+  email: string;
 
-  @ApiProperty()
   @IsString()
   @MinLength(8)
-  readonly password: string;
+  @MaxLength(20)
+  @Matches(/(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]/, {
+    message: 'Password must contain letters and numbers',
+  })
+  password: string;
 }
 
 export class UpdateUserDTO {
